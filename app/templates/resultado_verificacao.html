@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Resultado da Verificação{% endblock %}
+
+{% block content %}
+<h1>Resultado da verificação</h1>
+
+<div class="result-box {% if sucesso %}success{% else %}error{% endif %}">
+    <p><strong>{{ mensagem }}</strong></p>
+    {% if participante is defined and participante %}
+        <p>Nome: {{ participante.nome }}</p>
+        <p>Código: {{ participante.codigo_uuid }}</p>
+    {% endif %}
+    {% if score is defined and score is not none %}
+        <p>Score: {{ '%.4f'|format(score) }}</p>
+    {% endif %}
+    {% if detalhe_tecnico is defined and detalhe_tecnico %}
+        <p><small>Detalhe técnico: {{ detalhe_tecnico }}</small></p>
+    {% endif %}
+</div>
+{% endblock %}

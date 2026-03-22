@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Evento Face Access{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <nav class="top-nav">
+            <a href="{{ url_for('main.cadastro_page') }}">Cadastro</a>
+            <a href="{{ url_for('main.verificacao_page') }}">Verificação</a>
+        </nav>
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Cadastro no Evento{% endblock %}
+
+{% block content %}
+<h1>Cadastro</h1>
+<p>Preencha os dados, fique em frente à câmera e só clique em cadastrar quando a foto estiver boa.</p>
+
+<form action="/cadastro" method="POST" class="form-box" id="cadastroForm">
+    <label>Nome</label>
+    <input type="text" name="nome" required>
+
+    <label>Email</label>
+    <input type="email" name="email" required>
+
+    <label>CPF</label>
+    <input type="text" name="cpf" required>
+
+    <label>Telefone</label>
+    <input type="text" name="telefone" required>
+
+    <h3>Foto para cadastro</h3>
+    <p>A câmera fica ligada. Quando estiver pronto, clique em “Cadastrar”.</p>
+
+    <video id="video" autoplay playsinline width="360"></video>
+    <canvas id="canvas" width="360" height="270" style="display:none;"></canvas>
+    <input type="hidden" name="foto_base64" id="foto_base64">
+
+    <button type="submit">Cadastrar</button>
+</form>
+
+<script src="{{ url_for('static', filename='js/cadastro_camera.js') }}"></script>
+{% endblock %}

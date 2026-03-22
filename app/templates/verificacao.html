@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Verificação de Acesso{% endblock %}
+
+{% block content %}
+<h1>Verificação</h1>
+<p>Deixe apenas a câmera ativa para verificar se a pessoa está cadastrada ou não.</p>
+<p class="hint">Dica: fique centralizado na câmera e com boa iluminação antes de clicar em verificar.</p>
+
+<form action="/verificar" method="POST" class="form-box" id="verificacaoForm">
+    <video id="video" autoplay playsinline width="360"></video>
+    <canvas id="canvas" width="360" height="270" style="display:none;"></canvas>
+    <input type="hidden" name="foto_base64" id="foto_base64">
+
+    <button type="submit">Verificar cadastro</button>
+</form>
+
+<script src="{{ url_for('static', filename='js/verificacao_camera.js') }}"></script>
+{% endblock %}
