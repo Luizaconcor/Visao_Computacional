@@ -14,6 +14,8 @@ from app.models.acesso_model import registrar_log
 main = Blueprint("main", __name__)
 
 
+# Resolve caminhos de imagens salvos no banco.
+# Isso ajuda quando o projeto muda de pasta ou quando há caminhos relativos.
 def _resolve_image_path(path: str) -> str | None:
     if not path:
         return None
@@ -35,22 +37,25 @@ def _resolve_image_path(path: str) -> str | None:
     return os.path.abspath(os.path.join(project_root, path))
 
 
-
+# Página inicial: redireciona visualmente para a tela de cadastro.
 @main.route("/", methods=["GET"])
 def index():
     return render_template("cadastro.html")
 
 
+# Página de formulário de cadastro.
 @main.route("/cadastro", methods=["GET"])
 def cadastro_page():
     return render_template("cadastro.html")
 
 
+# Página de verificação facial na entrada do evento.
 @main.route("/verificacao", methods=["GET"])
 def verificacao_page():
     return render_template("verificacao.html")
 
 
+# Recebe os dados do formulário e salva o participante no banco.
 @main.route("/cadastro", methods=["POST"])
 def cadastro():
     nome = request.form.get("nome", "").strip()
@@ -70,6 +75,7 @@ def cadastro():
     foto_path = None
 
     try:
+        # Salva a foto capturada pelo navegador na pasta de uploads.
         foto_path = save_base64_image(
             data_url=foto_base64,
             upload_folder=current_app.config["UPLOAD_FOLDER"],
@@ -77,6 +83,7 @@ def cadastro():
             suffix="cadastro"
         )
 
+        # Persiste os dados principais do participante.
         participante_id = inserir_participante(
             codigo_uuid=code,
             nome=nome,
@@ -99,11 +106,13 @@ def cadastro():
         )
 
     except Exception as e:
+        # Se algo falhar após salvar a imagem, remove o arquivo para evitar lixo.
         if foto_path and os.path.exists(foto_path):
             os.remove(foto_path)
         return f"Erro ao processar cadastro: {str(e)}", 500
 
 
+# Recebe uma imagem ao vivo e compara com todos os participantes cadastrados.
 @main.route("/verificar", methods=["POST"])
 def verificar():
     foto_base64 = request.form.get("foto_base64", "").strip()
@@ -121,6 +130,7 @@ def verificar():
     captura_path = None
 
     try:
+        # Salva temporariamente a foto da verificação.
         captura_path = save_base64_image(
             data_url=foto_base64,
             upload_folder=current_app.config["UPLOAD_FOLDER"],
@@ -146,6 +156,7 @@ def verificar():
         comparacoes_validas = 0
         mensagens_erro = []
 
+        # Percorre todos os participantes e mantém o maior score encontrado.
         for participante in participantes:
             foto_participante = _resolve_image_path(participante["foto_path"])
             if not foto_participante:
@@ -165,6 +176,7 @@ def verificar():
                 melhor_score = resultado["score"]
                 melhor_participante = participante
 
+        # Score mínimo adotado para liberar a pessoa na demonstração.
         aprovado = melhor_participante is not None and melhor_score >= 0.53
 
         if aprovado:
@@ -215,5 +227,6 @@ def verificar():
             score=None
         ), 500
     finally:
+        # Remove a imagem temporária da verificação para não acumular arquivos.
         if captura_path and os.path.exists(captura_path):
             os.remove(captura_path)

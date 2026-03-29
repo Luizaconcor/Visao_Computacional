@@ -28,9 +28,10 @@ A câmera captura a imagem no clique do botão **Verificar cadastro** e compara 
 
 ```bash
 python -m venv .venv
-.venv\Scripts\activate
+source .venv/bin/activate  # Linux/macOS
+# ou .venv\Scripts\activate no Windows
 pip install -r requirements.txt
-cope .env.example .env
+cp .env.example .env
 python scripts/create_tables.py
 python run.py
 ```
@@ -39,3 +40,8 @@ Abra no navegador:
 - `http://127.0.0.1:5000/cadastro`
 - `http://127.0.0.1:5000/verificacao`
 
+
+
+## Deploy sem Docker
+
+Este projeto já está preparado para deploy sem Docker com `gunicorn`. Consulte o arquivo `DEPLOY_SEM_DOCKER.md` para o passo a passo em Render ou Railway.

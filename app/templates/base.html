@@ -4,15 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Evento Face Access{% endblock %}</title>
+    <meta name="description" content="Sistema acadêmico de controle de acesso com reconhecimento facial.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <div class="container">
-        <nav class="top-nav">
-            <a href="{{ url_for('main.cadastro_page') }}">Cadastro</a>
-            <a href="{{ url_for('main.verificacao_page') }}">Verificação</a>
-        </nav>
-        {% block content %}{% endblock %}
+    <div class="page-shell">
+        <header class="hero">
+            <div>
+                <p class="eyebrow">Visão Computacional</p>
+                <h1 class="hero-title">Evento Face Access</h1>
+                <p class="hero-subtitle">
+                    Cadastro e validação facial para controle de acesso em eventos de forma simples,
+                    visual e pronta para demonstração acadêmica.
+                </p>
+            </div>
+            <div class="hero-badge">Projeto em Flask + SQLite</div>
+        </header>
+
+        <main class="container-card">
+            <nav class="top-nav" aria-label="Navegação principal">
+                <a class="nav-link {% if request.endpoint in ['main.index', 'main.cadastro_page'] %}active{% endif %}"
+                   href="{{ url_for('main.cadastro_page') }}">Cadastro</a>
+                <a class="nav-link {% if request.endpoint == 'main.verificacao_page' %}active{% endif %}"
+                   href="{{ url_for('main.verificacao_page') }}">Verificação</a>
+            </nav>
+
+            {% block content %}{% endblock %}
+        </main>
     </div>
 </body>
 </html>

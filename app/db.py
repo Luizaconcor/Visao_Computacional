@@ -3,6 +3,8 @@ import sqlite3
 from flask import current_app, g
 
 
+# Retorna a conexão SQLite da requisição atual.
+# Se ainda não existir, cria uma nova conexão e a guarda em g.
 def get_db():
     if "db" not in g:
         db_path = current_app.config["DATABASE_PATH"]
@@ -12,6 +14,7 @@ def get_db():
     return g.db
 
 
+# Fecha a conexão com o banco ao final da requisição.
 def close_db(e=None):
     db = g.pop("db", None)
     if db is not None:

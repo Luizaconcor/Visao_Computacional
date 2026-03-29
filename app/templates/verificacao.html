@@ -3,16 +3,41 @@
 {% block title %}Verificação de Acesso{% endblock %}
 
 {% block content %}
-<h1>Verificação</h1>
-<p>Deixe apenas a câmera ativa para verificar se a pessoa está cadastrada ou não.</p>
-<p class="hint">Dica: fique centralizado na câmera e com boa iluminação antes de clicar em verificar.</p>
+<section class="page-header">
+    <div>
+        <span class="section-tag">Etapa 2</span>
+        <h2>Verificação de acesso</h2>
+        <p>
+            Posicione a pessoa em frente à câmera para comparar a imagem capturada
+            com as fotos já cadastradas no sistema.
+        </p>
+    </div>
+</section>
 
-<form action="/verificar" method="POST" class="form-box" id="verificacaoForm">
-    <video id="video" autoplay playsinline width="360"></video>
-    <canvas id="canvas" width="360" height="270" style="display:none;"></canvas>
-    <input type="hidden" name="foto_base64" id="foto_base64">
+<form action="/verificar" method="POST" class="single-panel" id="verificacaoForm">
+    <div class="form-section camera-panel wide">
+        <div class="camera-header">
+            <div>
+                <h3>Câmera de verificação</h3>
+                <p>Deixe apenas um rosto visível na imagem para melhorar o resultado.</p>
+            </div>
+            <span class="status-pill" id="cameraStatus">Iniciando câmera...</span>
+        </div>
 
-    <button type="submit">Verificar cadastro</button>
+        <div class="camera-frame large">
+            <video id="video" autoplay playsinline></video>
+            <div class="camera-overlay"></div>
+        </div>
+
+        <canvas id="canvas" width="360" height="270" hidden></canvas>
+        <input type="hidden" name="foto_base64" id="foto_base64">
+
+        <div class="info-banner">
+            Dica: mantenha o rosto centralizado e com boa iluminação antes de clicar em verificar.
+        </div>
+
+        <button type="submit" class="primary-button">Verificar cadastro</button>
+    </div>
 </form>
 
 <script src="{{ url_for('static', filename='js/verificacao_camera.js') }}"></script>

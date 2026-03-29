@@ -3,30 +3,59 @@
 {% block title %}Cadastro no Evento{% endblock %}
 
 {% block content %}
-<h1>Cadastro</h1>
-<p>Preencha os dados, fique em frente à câmera e só clique em cadastrar quando a foto estiver boa.</p>
+<section class="page-header">
+    <div>
+        <span class="section-tag">Etapa 1</span>
+        <h2>Cadastro do participante</h2>
+        <p>
+            Preencha os dados abaixo e confirme uma boa foto pela câmera frontal.
+            A imagem capturada será usada como base para a validação facial no evento.
+        </p>
+    </div>
+</section>
 
-<form action="/cadastro" method="POST" class="form-box" id="cadastroForm">
-    <label>Nome</label>
-    <input type="text" name="nome" required>
+<form action="/cadastro" method="POST" class="form-grid" id="cadastroForm">
+    <div class="form-section">
+        <h3>Dados pessoais</h3>
 
-    <label>Email</label>
-    <input type="email" name="email" required>
+        <label for="nome">Nome completo</label>
+        <input id="nome" type="text" name="nome" placeholder="Digite o nome do participante" required>
 
-    <label>CPF</label>
-    <input type="text" name="cpf" required>
+        <label for="email">Email</label>
+        <input id="email" type="email" name="email" placeholder="exemplo@email.com" required>
 
-    <label>Telefone</label>
-    <input type="text" name="telefone" required>
+        <label for="cpf">CPF</label>
+        <input id="cpf" type="text" name="cpf" placeholder="000.000.000-00" required>
 
-    <h3>Foto para cadastro</h3>
-    <p>A câmera fica ligada. Quando estiver pronto, clique em “Cadastrar”.</p>
+        <label for="telefone">Telefone</label>
+        <input id="telefone" type="text" name="telefone" placeholder="(21) 99999-9999" required>
+    </div>
 
-    <video id="video" autoplay playsinline width="360"></video>
-    <canvas id="canvas" width="360" height="270" style="display:none;"></canvas>
-    <input type="hidden" name="foto_base64" id="foto_base64">
+    <div class="form-section camera-panel">
+        <div class="camera-header">
+            <div>
+                <h3>Captura da foto</h3>
+                <p>Centralize o rosto, mantenha boa iluminação e evite movimentos.</p>
+            </div>
+            <span class="status-pill" id="cameraStatus">Iniciando câmera...</span>
+        </div>
 
-    <button type="submit">Cadastrar</button>
+        <div class="camera-frame">
+            <video id="video" autoplay playsinline></video>
+            <div class="camera-overlay"></div>
+        </div>
+
+        <canvas id="canvas" width="360" height="270" hidden></canvas>
+        <input type="hidden" name="foto_base64" id="foto_base64">
+
+        <ul class="tips-list">
+            <li>Olhe diretamente para a câmera.</li>
+            <li>Evite acessórios cobrindo o rosto.</li>
+            <li>Clique em cadastrar somente quando a imagem estiver nítida.</li>
+        </ul>
+
+        <button type="submit" class="primary-button">Cadastrar participante</button>
+    </div>
 </form>
 
 <script src="{{ url_for('static', filename='js/cadastro_camera.js') }}"></script>

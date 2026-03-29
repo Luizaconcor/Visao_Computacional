@@ -3,12 +3,33 @@
 {% block title %}Cadastro realizado{% endblock %}
 
 {% block content %}
-<h1>Cadastro realizado com sucesso</h1>
-<p>Obrigado, {{ nome }}.</p>
-<p>Código do cadastro: <strong>{{ codigo }}</strong></p>
-<p>ID interno: <strong>{{ participante_id }}</strong></p>
-{% if score is not none %}
-<p>Score da validação facial: <strong>{{ '%.4f'|format(score) }}</strong></p>
-{% endif %}
-<a href="/">Voltar</a>
+<section class="result-page">
+    <div class="result-box success">
+        <span class="result-tag">Cadastro concluído</span>
+        <h2>Cadastro realizado com sucesso</h2>
+        <p>Obrigado, <strong>{{ nome }}</strong>. O participante já está salvo no sistema.</p>
+
+        <div class="result-details">
+            <div class="detail-item">
+                <span>Código do cadastro</span>
+                <strong>{{ codigo }}</strong>
+            </div>
+            <div class="detail-item">
+                <span>ID interno</span>
+                <strong>{{ participante_id }}</strong>
+            </div>
+            {% if score is not none %}
+            <div class="detail-item">
+                <span>Score da validação facial</span>
+                <strong>{{ '%.4f'|format(score) }}</strong>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="actions-row">
+            <a class="secondary-button" href="{{ url_for('main.cadastro_page') }}">Novo cadastro</a>
+            <a class="primary-button inline-button" href="{{ url_for('main.verificacao_page') }}">Ir para verificação</a>
+        </div>
+    </div>
+</section>
 {% endblock %}

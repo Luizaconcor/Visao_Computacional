@@ -8,12 +8,14 @@ import os
 import sqlite3
 from dotenv import load_dotenv
 
+# Carrega variáveis de ambiente para localizar o banco.
 load_dotenv()
 
 db_path = os.getenv("DATABASE_PATH", "database/evento.db")
 conn = sqlite3.connect(db_path)
 conn.row_factory = sqlite3.Row
 
+# Busca participantes já aprovados para uma futura etapa de vetorização facial.
 rows = conn.execute(
     "SELECT id, nome, foto_path, status_verificacao FROM participantes WHERE status_verificacao = 'aprovado'"
 ).fetchall()

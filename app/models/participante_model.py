@@ -1,6 +1,7 @@
 from app.db import get_db
 
 
+# Insere um novo participante no banco e devolve o ID criado.
 def inserir_participante(
     codigo_uuid,
     nome,
@@ -42,21 +43,21 @@ def inserir_participante(
     return cursor.lastrowid
 
 
-
+# Busca um participante pelo CPF para evitar duplicidade de cadastro.
 def buscar_por_cpf(cpf):
     db = get_db()
     cursor = db.execute("SELECT * FROM participantes WHERE cpf = ?", (cpf,))
     return cursor.fetchone()
 
 
-
+# Retorna todos os participantes cadastrados.
 def listar_participantes():
     db = get_db()
     cursor = db.execute("SELECT * FROM participantes")
     return cursor.fetchall()
 
 
-
+# Lista os participantes com os campos usados na verificação facial.
 def buscar_todos_participantes():
     db = get_db()
     cursor = db.execute(

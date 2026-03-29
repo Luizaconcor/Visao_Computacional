@@ -3,19 +3,37 @@
 {% block title %}Resultado da Verificação{% endblock %}
 
 {% block content %}
-<h1>Resultado da verificação</h1>
+<section class="result-page">
+    <div class="result-box {% if sucesso %}success{% else %}error{% endif %}">
+        <span class="result-tag">{% if sucesso %}Acesso liberado{% else %}Acesso negado{% endif %}</span>
+        <h2>Resultado da verificação</h2>
+        <p><strong>{{ mensagem }}</strong></p>
 
-<div class="result-box {% if sucesso %}success{% else %}error{% endif %}">
-    <p><strong>{{ mensagem }}</strong></p>
-    {% if participante is defined and participante %}
-        <p>Nome: {{ participante.nome }}</p>
-        <p>Código: {{ participante.codigo_uuid }}</p>
-    {% endif %}
-    {% if score is defined and score is not none %}
-        <p>Score: {{ '%.4f'|format(score) }}</p>
-    {% endif %}
-    {% if detalhe_tecnico is defined and detalhe_tecnico %}
-        <p><small>Detalhe técnico: {{ detalhe_tecnico }}</small></p>
-    {% endif %}
-</div>
+        {% if participante is defined and participante %}
+        <div class="result-details">
+            <div class="detail-item">
+                <span>Nome</span>
+                <strong>{{ participante.nome }}</strong>
+            </div>
+            <div class="detail-item">
+                <span>Código</span>
+                <strong>{{ participante.codigo_uuid }}</strong>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if score is defined and score is not none %}
+            <p class="technical-note">Score da comparação: <strong>{{ '%.4f'|format(score) }}</strong></p>
+        {% endif %}
+
+        {% if detalhe_tecnico is defined and detalhe_tecnico %}
+            <p class="technical-note"><small>Detalhe técnico: {{ detalhe_tecnico }}</small></p>
+        {% endif %}
+
+        <div class="actions-row">
+            <a class="secondary-button" href="{{ url_for('main.cadastro_page') }}">Voltar ao cadastro</a>
+            <a class="primary-button inline-button" href="{{ url_for('main.verificacao_page') }}">Nova verificação</a>
+        </div>
+    </div>
+</section>
 {% endblock %}
