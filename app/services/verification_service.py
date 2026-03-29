@@ -140,22 +140,44 @@ def _edge_similarity(face1, face2):
 
 
 # Combina as métricas em um score único entre 0 e 1.
-def _face_similarity(face1, face2):
+def _face_similarity_details(face1, face2):
     hist_score = _hist_similarity(face1, face2)
     orb_score = _orb_similarity(face1, face2)
     edge_score = _edge_similarity(face1, face2)
 
-    parts = [0.55 * hist_score]
-    weight = 0.55
+    # Damos menos peso ao histograma puro porque ele costuma aceitar
+    # rostos diferentes quando a iluminação e o enquadramento são parecidos.
+    parts = [0.35 * hist_score]
+    weight = 0.35
 
     if orb_score is not None:
-        parts.append(0.30 * orb_score)
-        weight += 0.30
+        parts.append(0.45 * orb_score)
+        weight += 0.45
     if edge_score is not None:
-        parts.append(0.15 * edge_score)
-        weight += 0.15
+        parts.append(0.20 * edge_score)
+        weight += 0.20
 
-    return float(sum(parts) / weight)
+    score = float(sum(parts) / weight)
+
+    # Regras mínimas para reduzir falso positivo em demos acadêmicas.
+    # Só aprova quando o score geral e a estrutura facial passam em conjunto.
+    structural_ok = (orb_score is not None and orb_score >= 0.26) or (
+        edge_score is not None and edge_score >= 0.36
+    )
+    histogram_ok = hist_score >= 0.72
+    verified = score >= 0.67 and histogram_ok and structural_ok
+
+    return {
+        "score": score,
+        "hist_score": hist_score,
+        "orb_score": orb_score,
+        "edge_score": edge_score,
+        "match": verified,
+    }
+
+
+def _face_similarity(face1, face2):
+    return _face_similarity_details(face1, face2)["score"]
 
 
 # Extrai a face principal a partir de um caminho no disco.
@@ -169,16 +191,16 @@ def compare_faces_by_path(image_path_1: str, image_path_2: str):
     try:
         face1 = extract_face_from_path(image_path_1)
         face2 = extract_face_from_path(image_path_2)
-        score = _face_similarity(face1, face2)
-
-        # Limiar acadêmico mais permissivo para demonstração.
-        verified = score >= 0.53
+        metrics = _face_similarity_details(face1, face2)
 
         return {
             "success": True,
-            "match": verified,
-            "message": "Faces correspondem." if verified else "Faces não correspondem.",
-            "score": score,
+            "match": metrics["match"],
+            "message": "Faces correspondem." if metrics["match"] else "Faces não correspondem.",
+            "score": metrics["score"],
+            "hist_score": metrics["hist_score"],
+            "orb_score": metrics["orb_score"],
+            "edge_score": metrics["edge_score"],
             "liveness_ok": True,
         }
     except Exception as e:
@@ -187,6 +209,9 @@ def compare_faces_by_path(image_path_1: str, image_path_2: str):
             "match": False,
             "message": str(e),
             "score": None,
+            "hist_score": None,
+            "orb_score": None,
+            "edge_score": None,
             "liveness_ok": False,
         }
 

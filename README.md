@@ -28,7 +28,8 @@ A câmera captura a imagem no clique do botão **Verificar cadastro** e compara 
 
 ```bash
 python -m venv .venv
-.venv\Scripts\activate # no Windows
+source .venv/bin/activate  # Linux/macOS
+# ou .venv\Scripts\activate no Windows
 pip install -r requirements.txt
 cp .env.example .env
 python scripts/create_tables.py

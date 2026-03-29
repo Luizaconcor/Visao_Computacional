@@ -150,7 +150,9 @@ def verificar():
             )
 
         melhor_participante = None
+        melhor_resultado = None
         melhor_score = -1.0
+        segundo_melhor_score = -1.0
 
         erros_ignorados = 0
         comparacoes_validas = 0
@@ -171,13 +173,50 @@ def verificar():
                 continue
 
             comparacoes_validas += 1
+            score_atual = resultado.get("score")
+            if score_atual is None:
+                continue
 
-            if resultado.get("score") is not None and resultado["score"] > melhor_score:
-                melhor_score = resultado["score"]
+            if score_atual > melhor_score:
+                segundo_melhor_score = melhor_score
+                melhor_score = score_atual
                 melhor_participante = participante
+                melhor_resultado = resultado
+            elif score_atual > segundo_melhor_score:
+                segundo_melhor_score = score_atual
 
-        # Score mínimo adotado para liberar a pessoa na demonstração.
-        aprovado = melhor_participante is not None and melhor_score >= 0.53
+        # Para evitar "sempre dá certo", a liberação exige:
+        # 1) que a melhor comparação tenha passado pelas regras internas;
+        # 2) score alto;
+        # 3) vantagem mínima sobre o segundo melhor candidato.
+        margem_minima = 0.08
+        score_minimo_unico = 0.75
+        score_minimo_geral = 0.67
+        diferenca_top2 = melhor_score - segundo_melhor_score if segundo_melhor_score >= 0 else None
+
+        aprovado = (
+            melhor_participante is not None
+            and melhor_resultado is not None
+            and melhor_resultado.get("match") is True
+            and (
+                (comparacoes_validas == 1 and melhor_score >= score_minimo_unico)
+                or (
+                    comparacoes_validas > 1
+                    and melhor_score >= score_minimo_geral
+                    and diferenca_top2 is not None
+                    and diferenca_top2 >= margem_minima
+                )
+            )
+        )
+
+        success_detail = None
+        if melhor_resultado is not None:
+            orb_txt = f"{melhor_resultado.get('orb_score'):.4f}" if melhor_resultado.get('orb_score') is not None else "n/a"
+            edge_txt = f"{melhor_resultado.get('edge_score'):.4f}" if melhor_resultado.get('edge_score') is not None else "n/a"
+            success_detail = (
+                f"hist={melhor_resultado.get('hist_score'):.4f}, "
+                f"orb={orb_txt}, bordas={edge_txt}"
+            )
 
         if aprovado:
             registrar_log(
@@ -191,7 +230,7 @@ def verificar():
                 sucesso=True,
                 mensagem=f"Acesso liberado para {melhor_participante['nome']}.",
                 participante=melhor_participante,
-                detalhe_tecnico=None,
+                detalhe_tecnico=success_detail,
                 score=melhor_score,
             )
 
@@ -201,6 +240,15 @@ def verificar():
             mensagem = "Não foi possível comparar a imagem capturada com as fotos cadastradas."
             if mensagens_erro:
                 detalhe_tecnico = " | ".join(mensagens_erro[:3])
+        elif melhor_resultado is not None:
+            orb_txt = f"{melhor_resultado.get('orb_score'):.4f}" if melhor_resultado.get('orb_score') is not None else "n/a"
+            edge_txt = f"{melhor_resultado.get('edge_score'):.4f}" if melhor_resultado.get('edge_score') is not None else "n/a"
+            margem_txt = f"{diferenca_top2:.4f}" if diferenca_top2 is not None else "n/a"
+            detalhe_tecnico = (
+                f"Melhor candidato: {melhor_participante['nome']} | "
+                f"hist={melhor_resultado.get('hist_score'):.4f}, "
+                f"orb={orb_txt}, bordas={edge_txt}, margem_top2={margem_txt}"
+            )
 
         registrar_log(
             participante_id=None,
