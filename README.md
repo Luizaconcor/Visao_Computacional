@@ -1,4 +1,4 @@
-# Evento Face Access - SQLite
+# Evento Face Access
 
 Projeto acadêmico em Flask + SQLite para controle de acesso com reconhecimento facial simples.
 
