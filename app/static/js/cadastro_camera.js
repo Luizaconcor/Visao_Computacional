@@ -27,6 +27,7 @@ async function iniciarCamera() {
     });
 
     video.srcObject = stream;
+    video.style.transform = "scaleX(-1)";
     atualizarStatus("Câmera pronta");
   } catch (error) {
     atualizarStatus("Câmera indisponível");

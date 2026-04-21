@@ -10,6 +10,7 @@ async function iniciarCamera() {
       audio: false,
     });
     video.srcObject = stream;
+    video.style.transform = "scaleX(-1)";
   } catch (error) {
     alert("Não foi possível acessar a câmera. Verifique as permissões do navegador.");
     console.error(error);
