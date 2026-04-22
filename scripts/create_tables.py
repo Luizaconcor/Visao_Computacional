@@ -1,3 +1,8 @@
+"""Script de criação inicial do banco e das tabelas.
+
+Pode ser executado separadamente para preparar o ambiente do projeto.
+"""
+
 import os
 import sqlite3
 from dotenv import load_dotenv

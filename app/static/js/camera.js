@@ -1,3 +1,4 @@
+// Utilitários compartilhados para acesso à câmera no navegador.
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const btnCapturar = document.getElementById("btnCapturar");

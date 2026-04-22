@@ -1,0 +1,46 @@
+{# Exibe gráfico e tabela resumindo os logs de acesso. #}
+{% extends "base.html" %}
+
+{% block title %}Relatório de Logs{% endblock %}
+
+{% block content %}
+<section class="result-page">
+    <div class="result-box success">
+        <span class="result-tag">Atualização automática</span>
+        <h2>Relatório dos logs de acesso</h2>
+        <p><strong>Total de registros:</strong> {{ total }}</p>
+        <p class="technical-note">
+            Este gráfico é gerado novamente toda vez que esta página é aberta, usando os dados atuais da tabela <strong>logs_acesso</strong>.
+        </p>
+
+        <div class="chart-panel">
+            <img src="{{ url_for('static', filename=grafico_path) }}?v={{ total }}" alt="Gráfico dos resultados dos logs de acesso">
+        </div>
+
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Resultado</th>
+                        <th>Quantidade</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if dados %}
+                        {% for item in dados %}
+                        <tr>
+                            <td>{{ item.resultado }}</td>
+                            <td>{{ item.quantidade }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="2">Nenhum log encontrado.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,3 +1,9 @@
+"""Serviços utilitários para leitura e salvamento de imagens.
+
+Suporta tanto upload tradicional quanto imagens capturadas pela câmera em
+formato base64.
+"""
+
 import os
 import re
 import base64

@@ -1,3 +1,9 @@
+"""Acesso ao banco SQLite durante as requisições Flask.
+
+A conexão é criada sob demanda e guardada em `g`, o contexto temporário
+da requisição atual.
+"""
+
 import os
 import sqlite3
 from flask import current_app, g

@@ -1,3 +1,4 @@
+# Arquivo que informa ao Git quais itens não devem ser versionados.
 # Python
 __pycache__/
 *.py[cod]

@@ -1,3 +1,9 @@
+"""Camada de persistência para o histórico de acessos.
+
+Este módulo isola o SQL referente aos logs, deixando as rotas mais limpas
+e fáceis de manter.
+"""
+
 from app.db import get_db
 
 

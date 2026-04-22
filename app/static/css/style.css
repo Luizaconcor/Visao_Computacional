@@ -1,3 +1,8 @@
+/*
+Arquivo principal de estilos da interface.
+Reúne variáveis visuais, layout, componentes e regras responsivas.
+*/
+/* Variáveis globais de cor, sombra e bordas usadas em toda a interface. */
 :root {
     --bg: #081120;
     --bg-soft: #0f1b2d;
@@ -38,6 +43,7 @@ body {
     margin: 34px auto;
 }
 
+/* Cabeçalho principal da página. */
 .hero {
     display: flex;
     justify-content: space-between;
@@ -149,6 +155,7 @@ label,
     color: var(--primary);
 }
 
+/* Grid que separa o formulário textual do painel da câmera. */
 .form-grid {
     display: grid;
     grid-template-columns: 1fr 1.15fr;
@@ -224,6 +231,7 @@ input:focus {
     font-size: 12px;
 }
 
+/* Moldura visual do vídeo da câmera. */
 .camera-frame {
     position: relative;
     overflow: hidden;
@@ -275,6 +283,7 @@ video {
     border: 1px solid #d6e4ff;
 }
 
+/* Estilo-base dos botões principais e secundários. */
 .primary-button,
 .secondary-button {
     border: none;
@@ -370,11 +379,13 @@ video {
 }
 
 @media (max-width: 900px) {
-    .hero {
+    /* Cabeçalho principal da página. */
+.hero {
         flex-direction: column;
     }
 
-    .form-grid {
+    /* Grid que separa o formulário textual do painel da câmera. */
+.form-grid {
         grid-template-columns: 1fr;
     }
 }
@@ -408,4 +419,44 @@ video {
     .camera-overlay::after {
         inset: 16% 15%;
     }
+}
+
+
+.chart-panel {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 18px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+}
+
+.chart-panel img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 12px;
+}
+
+.table-wrapper {
+    margin-top: 1rem;
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.data-table th,
+.data-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+}
+
+.data-table th {
+    background: #f3f4f6;
 }

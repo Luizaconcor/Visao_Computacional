@@ -1,3 +1,9 @@
+"""Configurações centralizadas da aplicação.
+
+Concentra caminhos, limites e segredos lidos do ambiente para evitar
+valores fixos espalhados pelo projeto.
+"""
+
 import os
 from dotenv import load_dotenv
 

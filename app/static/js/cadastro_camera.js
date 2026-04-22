@@ -1,3 +1,4 @@
+// Controla a captura da câmera na tela de cadastro.
 // Elementos usados para exibir a câmera e enviar a imagem capturada ao backend.
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
@@ -14,6 +15,7 @@ function atualizarStatus(texto) {
 
 // Solicita acesso à câmera frontal do dispositivo.
 async function iniciarCamera() {
+  // Solicita acesso à webcam do usuário e prepara a visualização.
   try {
     atualizarStatus("Solicitando permissão...");
 
@@ -46,6 +48,7 @@ video.addEventListener("loadedmetadata", () => {
 
 // Antes de enviar o formulário, captura um frame da câmera em JPEG base64.
 form.addEventListener("submit", (event) => {
+  // No envio, captura um frame do vídeo e coloca a imagem em um input oculto.
   if (!video.srcObject) {
     event.preventDefault();
     alert("A câmera ainda não está pronta.");

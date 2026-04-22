@@ -1,3 +1,9 @@
+"""Inicialização da aplicação Flask.
+
+Este arquivo monta o app, carrega configurações, cria a estrutura mínima
+do projeto e registra os componentes principais.
+"""
+
 import os
 from flask import Flask
 from app.config import Config

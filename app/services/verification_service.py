@@ -1,3 +1,9 @@
+"""Funções de comparação facial simplificada com OpenCV.
+
+É uma implementação didática para fins acadêmicos, não uma solução biométrica
+pronta para produção.
+"""
+
 import os
 import cv2
 import numpy as np
@@ -34,6 +40,7 @@ def _load_image(path: str):
 
 # Gera um recorte central quando a detecção facial falha.
 def _central_crop(image, scale: float = 0.7):
+    # Fallback: corta a região central da imagem quando a face não é detectada.
     h, w = image.shape[:2]
     cw, ch = int(w * scale), int(h * scale)
     x1 = max((w - cw) // 2, 0)
@@ -46,6 +53,7 @@ def _central_crop(image, scale: float = 0.7):
 
 # Padroniza o tamanho da face para que as métricas sejam comparáveis.
 def _normalize_face(face):
+    # Reduz variação de tamanho entre imagens antes de comparar.
     return cv2.resize(face, (224, 224), interpolation=cv2.INTER_AREA)
 
 
@@ -85,6 +93,7 @@ def _detect_single_face(image):
 
 # Mede semelhança entre histogramas em tons de cinza.
 def _hist_similarity(face1, face2):
+    # Compara distribuição de intensidade dos pixels em escala de cinza.
     face1 = _normalize_face(face1)
     face2 = _normalize_face(face2)
 
@@ -107,6 +116,7 @@ def _hist_similarity(face1, face2):
 
 # Mede semelhança usando pontos-chave ORB.
 def _orb_similarity(face1, face2):
+    # Usa pontos-chave ORB para medir semelhança estrutural entre as faces.
     gray1 = cv2.cvtColor(_normalize_face(face1), cv2.COLOR_BGR2GRAY)
     gray2 = cv2.cvtColor(_normalize_face(face2), cv2.COLOR_BGR2GRAY)
 
@@ -127,6 +137,7 @@ def _orb_similarity(face1, face2):
 
 # Mede a sobreposição das bordas detectadas nas duas faces.
 def _edge_similarity(face1, face2):
+    # Mede o quanto as bordas detectadas coincidem entre as duas imagens.
     gray1 = cv2.cvtColor(_normalize_face(face1), cv2.COLOR_BGR2GRAY)
     gray2 = cv2.cvtColor(_normalize_face(face2), cv2.COLOR_BGR2GRAY)
 
@@ -141,6 +152,7 @@ def _edge_similarity(face1, face2):
 
 # Combina as métricas em um score único entre 0 e 1.
 def _face_similarity_details(face1, face2):
+    # Junta várias heurísticas em um único score de similaridade.
     hist_score = _hist_similarity(face1, face2)
     orb_score = _orb_similarity(face1, face2)
     edge_score = _edge_similarity(face1, face2)

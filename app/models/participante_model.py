@@ -1,3 +1,8 @@
+"""Camada de persistência dos participantes cadastrados.
+
+Centraliza inserts e consultas usadas pelo cadastro e pela verificação.
+"""
+
 from app.db import get_db
 
 

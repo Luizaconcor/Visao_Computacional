@@ -1,4 +1,4 @@
-# Evento Face Access
+# Controle Facial
 
 Projeto acadêmico em Flask + SQLite para controle de acesso com reconhecimento facial simples.
 
@@ -28,7 +28,7 @@ A câmera captura a imagem no clique do botão **Verificar cadastro** e compara 
 
 ```bash
 python -m venv .venv
-.venv\Scripts\activate no Windows
+.venv\Scripts\activate # no Windows
 pip install -r requirements.txt
 cp .env.example .env
 python scripts/create_tables.py
@@ -38,3 +38,10 @@ python run.py
 Abra no navegador:
 - `http://127.0.0.1:5000/cadastro`
 - `http://127.0.0.1:5000/verificacao`
+
+## Relatórios
+
+Acesse também:
+- `http://127.0.0.1:5000/relatorios/logs`
+
+Nesta rota, o gráfico de resultados da tabela `logs_acesso` é regenerado automaticamente sempre que a página é aberta.

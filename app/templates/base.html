@@ -1,9 +1,11 @@
+{# Layout base compartilhado por todas as páginas. #}
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    {# Metadados, fontes e CSS global carregados em todas as páginas. #}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Evento Face Access{% endblock %}</title>
+    <title>{% block title %}Controle Facial{% endblock %}</title>
     <meta name="description" content="Sistema acadêmico de controle de acesso com reconhecimento facial.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +16,7 @@
     <div class="page-shell">
         <header class="hero">
             <div>
-                <h1 class="hero-title">Evento Face Access</h1>
+                <h1 class="hero-title">Controle Facial</h1>
                 <p class="hero-subtitle">
                     Cadastro e validação facial para controle de acesso em eventos de forma simples,
                     visual e pronta para demonstração acadêmica.
@@ -24,10 +26,13 @@
 
         <main class="container-card">
             <nav class="top-nav" aria-label="Navegação principal">
+                {# Menu superior para navegar entre cadastro, verificação e relatórios. #}
                 <a class="nav-link {% if request.endpoint in ['main.index', 'main.cadastro_page'] %}active{% endif %}"
                    href="{{ url_for('main.cadastro_page') }}">Cadastro</a>
                 <a class="nav-link {% if request.endpoint == 'main.verificacao_page' %}active{% endif %}"
                    href="{{ url_for('main.verificacao_page') }}">Verificação</a>
+                <a class="nav-link {% if request.endpoint == 'main.relatorio_logs' %}active{% endif %}"
+                   href="{{ url_for('main.relatorio_logs') }}">Relatórios</a>
             </nav>
 
             {% block content %}{% endblock %}

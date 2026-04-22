@@ -1,3 +1,4 @@
+// Controla a captura da câmera na tela de verificação.
 // Elementos usados na etapa de verificação facial.
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
@@ -14,6 +15,7 @@ function atualizarStatus(texto) {
 
 // Inicia a câmera frontal do dispositivo para verificação ao vivo.
 async function iniciarCamera() {
+  // Solicita acesso à webcam para capturar a imagem de verificação.
   try {
     atualizarStatus("Solicitando permissão...");
 
@@ -46,6 +48,7 @@ video.addEventListener("loadedmetadata", () => {
 
 // Captura um frame no instante do envio para comparação com o banco.
 form.addEventListener("submit", (event) => {
+  // Antes de enviar, tira uma “foto” do frame atual e serializa em base64.
   if (!video.srcObject) {
     event.preventDefault();
     alert("A câmera ainda não está pronta.");
