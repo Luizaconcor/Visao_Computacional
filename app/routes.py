@@ -257,9 +257,9 @@ def verificar():
             elif score_atual > segundo_melhor_score:
                 segundo_melhor_score = score_atual
 
-        margem_minima = 0.08
-        score_minimo_unico = 0.75
-        score_minimo_geral = 0.67
+        margem_minima = 0.03
+        score_minimo_unico = 0.62
+        score_minimo_geral = 0.62
         diferenca_top2 = melhor_score - segundo_melhor_score if segundo_melhor_score >= 0 else None
 
         # Regras de decisão: exigimos score mínimo e distância suficiente do 2º colocado.
@@ -280,11 +280,11 @@ def verificar():
 
         success_detail = None
         if melhor_resultado is not None:
-            orb_txt = f"{melhor_resultado.get('orb_score'):.4f}" if melhor_resultado.get('orb_score') is not None else "n/a"
-            edge_txt = f"{melhor_resultado.get('edge_score'):.4f}" if melhor_resultado.get('edge_score') is not None else "n/a"
+            dlib_score_txt = f"{melhor_resultado.get('dlib_score'):.4f}" if melhor_resultado.get('dlib_score') is not None else "n/a"
+            dlib_distance_txt = f"{melhor_resultado.get('dlib_distance'):.4f}" if melhor_resultado.get('dlib_distance') is not None else "n/a"
             success_detail = (
-                f"hist={melhor_resultado.get('hist_score'):.4f}, "
-                f"orb={orb_txt}, bordas={edge_txt}"
+                f"dlib_score={dlib_score_txt}, "
+                f"dlib_distancia={dlib_distance_txt}"
             )
 
         if aprovado:
@@ -310,13 +310,13 @@ def verificar():
             if mensagens_erro:
                 detalhe_tecnico = " | ".join(mensagens_erro[:3])
         elif melhor_resultado is not None:
-            orb_txt = f"{melhor_resultado.get('orb_score'):.4f}" if melhor_resultado.get('orb_score') is not None else "n/a"
-            edge_txt = f"{melhor_resultado.get('edge_score'):.4f}" if melhor_resultado.get('edge_score') is not None else "n/a"
+            dlib_score_txt = f"{melhor_resultado.get('dlib_score'):.4f}" if melhor_resultado.get('dlib_score') is not None else "n/a"
+            dlib_distance_txt = f"{melhor_resultado.get('dlib_distance'):.4f}" if melhor_resultado.get('dlib_distance') is not None else "n/a"
             margem_txt = f"{diferenca_top2:.4f}" if diferenca_top2 is not None else "n/a"
             detalhe_tecnico = (
                 f"Melhor candidato: {melhor_participante['nome']} | "
-                f"hist={melhor_resultado.get('hist_score'):.4f}, "
-                f"orb={orb_txt}, bordas={edge_txt}, margem_top2={margem_txt}"
+                f"dlib_score={dlib_score_txt}, "
+                f"dlib_distancia={dlib_distance_txt}, margem_top2={margem_txt}"
             )
 
         registrar_log(

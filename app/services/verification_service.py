@@ -1,24 +1,62 @@
-"""Funções de comparação facial simplificada com OpenCV.
+"""Funções de verificação facial usando dlib.
 
-É uma implementação didática para fins acadêmicos, não uma solução biométrica
-pronta para produção.
+Esta versão usa o detector HOG do dlib para localizar o rosto e o modelo
+ResNet do dlib para gerar um descritor facial de 128 dimensões. A comparação
+é feita pela distância euclidiana entre os descritores.
+
+É uma implementação acadêmica/didática, não uma solução biométrica pronta para
+produção.
 """
 
 import os
+
 import cv2
 import numpy as np
 
+try:
+    import dlib
+    import face_recognition_models
+except ImportError as exc:  # erro amigável quando as dependências faltarem
+    dlib = None
+    face_recognition_models = None
+    _DLIB_IMPORT_ERROR = exc
+else:
+    _DLIB_IMPORT_ERROR = None
 
-# Carrega o classificador Haar Cascade embutido no OpenCV.
-# Ele é suficiente para uma demo acadêmica simples de detecção facial.
-CASCADE_PATH = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-face_cascade = cv2.CascadeClassifier(CASCADE_PATH)
 
-# ORB é um descritor leve de pontos-chave, bom para exemplos didáticos.
-orb = cv2.ORB_create(nfeatures=700)
+# Limiar clássico do dlib/face_recognition: distância <= 0.60 indica que as
+# imagens provavelmente são da mesma pessoa. Valores menores são mais rígidos.
+DLIB_DISTANCE_THRESHOLD = float(os.getenv("DLIB_DISTANCE_THRESHOLD", "0.60"))
 
-# Comparador brute-force para os descritores ORB.
-bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+# Aumentar a imagem uma vez melhora a detecção em fotos pequenas, mantendo
+# desempenho aceitável para um projeto acadêmico.
+DLIB_UPSAMPLE_TIMES = int(os.getenv("DLIB_UPSAMPLE_TIMES", "1"))
+
+_dlib_detector = None
+_dlib_shape_predictor = None
+_dlib_face_encoder = None
+
+
+# Inicializa os modelos do dlib apenas quando forem usados.
+def _ensure_dlib_models():
+    global _dlib_detector, _dlib_shape_predictor, _dlib_face_encoder
+
+    if _DLIB_IMPORT_ERROR is not None:
+        raise RuntimeError(
+            "Dependências do dlib não instaladas. Execute: "
+            "pip install -r requirements.txt"
+        ) from _DLIB_IMPORT_ERROR
+
+    if _dlib_detector is None:
+        _dlib_detector = dlib.get_frontal_face_detector()
+
+    if _dlib_shape_predictor is None:
+        predictor_path = face_recognition_models.pose_predictor_five_point_model_location()
+        _dlib_shape_predictor = dlib.shape_predictor(predictor_path)
+
+    if _dlib_face_encoder is None:
+        model_path = face_recognition_models.face_recognition_model_location()
+        _dlib_face_encoder = dlib.face_recognition_model_v1(model_path)
 
 
 # Carrega uma imagem do disco, inclusive em caminhos com caracteres especiais.
@@ -38,9 +76,8 @@ def _load_image(path: str):
     return image
 
 
-# Gera um recorte central quando a detecção facial falha.
+# Gera um recorte central apenas para visualização/fallback controlado.
 def _central_crop(image, scale: float = 0.7):
-    # Fallback: corta a região central da imagem quando a face não é detectada.
     h, w = image.shape[:2]
     cw, ch = int(w * scale), int(h * scale)
     x1 = max((w - cw) // 2, 0)
@@ -51,145 +88,84 @@ def _central_crop(image, scale: float = 0.7):
     return crop if crop.size else image
 
 
-# Padroniza o tamanho da face para que as métricas sejam comparáveis.
-def _normalize_face(face):
-    # Reduz variação de tamanho entre imagens antes de comparar.
-    return cv2.resize(face, (224, 224), interpolation=cv2.INTER_AREA)
+# Converte retângulo do dlib para recorte OpenCV com margem.
+def _crop_dlib_rect(image, rect, padding_ratio: float = 0.18):
+    h, w = image.shape[:2]
+
+    x = max(rect.left(), 0)
+    y = max(rect.top(), 0)
+    x2 = min(rect.right(), w - 1)
+    y2 = min(rect.bottom(), h - 1)
+
+    face_w = max(x2 - x, 1)
+    face_h = max(y2 - y, 1)
+    pad = int(min(face_w, face_h) * padding_ratio)
+
+    x1 = max(x - pad, 0)
+    y1 = max(y - pad, 0)
+    x2 = min(x2 + pad, w)
+    y2 = min(y2 + pad, h)
+
+    face = image[y1:y2, x1:x2]
+    return face if face.size else _central_crop(image)
 
 
-# Detecta o rosto principal da imagem.
-# Se não encontrar, usa um recorte central para não interromper a demo.
+# Detecta o rosto principal com dlib.
+def _detect_main_face_rect(image_rgb):
+    _ensure_dlib_models()
+
+    detections = _dlib_detector(image_rgb, DLIB_UPSAMPLE_TIMES)
+    if not detections:
+        raise ValueError("Nenhum rosto detectado pelo dlib na imagem.")
+
+    # Seleciona o maior rosto detectado, útil quando há mais de uma pessoa.
+    return max(detections, key=lambda r: r.width() * r.height())
+
+
+# Extrai a face principal a partir de um array de imagem.
 def _detect_single_face(image):
     if image is None or image.size == 0:
         raise ValueError("Imagem inválida para detecção.")
 
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-    if face_cascade is None or face_cascade.empty():
-        return _central_crop(image)
-
-    try:
-        faces = face_cascade.detectMultiScale(
-            gray,
-            scaleFactor=1.08,
-            minNeighbors=4,
-            minSize=(60, 60)
-        )
-    except Exception:
-        return _central_crop(image)
-
-    if len(faces) >= 1:
-        x, y, w, h = max(faces, key=lambda f: f[2] * f[3])
-        pad = int(min(w, h) * 0.15)
-        x1 = max(x - pad, 0)
-        y1 = max(y - pad, 0)
-        x2 = min(x + w + pad, image.shape[1])
-        y2 = min(y + h + pad, image.shape[0])
-        face = image[y1:y2, x1:x2]
-        return face if face.size else _central_crop(image)
-
-    return _central_crop(image)
+    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    rect = _detect_main_face_rect(image_rgb)
+    return _crop_dlib_rect(image, rect)
 
 
-# Mede semelhança entre histogramas em tons de cinza.
-def _hist_similarity(face1, face2):
-    # Compara distribuição de intensidade dos pixels em escala de cinza.
-    face1 = _normalize_face(face1)
-    face2 = _normalize_face(face2)
+# Gera o descritor facial de 128 dimensões do dlib.
+def _face_descriptor_from_image(image):
+    if image is None or image.size == 0:
+        raise ValueError("Imagem inválida para extração de descritor facial.")
 
-    gray1 = cv2.cvtColor(face1, cv2.COLOR_BGR2GRAY)
-    gray2 = cv2.cvtColor(face2, cv2.COLOR_BGR2GRAY)
+    _ensure_dlib_models()
 
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-    gray1 = clahe.apply(gray1)
-    gray2 = clahe.apply(gray2)
+    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    rect = _detect_main_face_rect(image_rgb)
+    shape = _dlib_shape_predictor(image_rgb, rect)
+    descriptor = _dlib_face_encoder.compute_face_descriptor(image_rgb, shape)
 
-    hist1 = cv2.calcHist([gray1], [0], None, [128], [0, 256])
-    hist2 = cv2.calcHist([gray2], [0], None, [128], [0, 256])
-
-    cv2.normalize(hist1, hist1)
-    cv2.normalize(hist2, hist2)
-
-    correlation = cv2.compareHist(hist1, hist2, cv2.HISTCMP_CORREL)
-    return max(0.0, min(1.0, float((correlation + 1) / 2)))
+    return np.array(descriptor, dtype=np.float32)
 
 
-# Mede semelhança usando pontos-chave ORB.
-def _orb_similarity(face1, face2):
-    # Usa pontos-chave ORB para medir semelhança estrutural entre as faces.
-    gray1 = cv2.cvtColor(_normalize_face(face1), cv2.COLOR_BGR2GRAY)
-    gray2 = cv2.cvtColor(_normalize_face(face2), cv2.COLOR_BGR2GRAY)
-
-    kp1, des1 = orb.detectAndCompute(gray1, None)
-    kp2, des2 = orb.detectAndCompute(gray2, None)
-
-    if des1 is None or des2 is None:
-        return None
-
-    matches = bf.match(des1, des2)
-    if not matches:
-        return 0.0
-
-    good = [m for m in matches if m.distance < 64]
-    denom = max(len(matches), 1)
-    return max(0.0, min(1.0, len(good) / denom))
+# Converte distância do dlib em score amigável entre 0 e 1.
+def _distance_to_score(distance: float) -> float:
+    # Fórmula suave: distância 0.00 => 1.00; distância 0.60 => ~0.625.
+    # Assim o score continua legível na tela sem perder o limiar técnico.
+    return float(max(0.0, min(1.0, 1.0 / (1.0 + distance))))
 
 
-# Mede a sobreposição das bordas detectadas nas duas faces.
-def _edge_similarity(face1, face2):
-    # Mede o quanto as bordas detectadas coincidem entre as duas imagens.
-    gray1 = cv2.cvtColor(_normalize_face(face1), cv2.COLOR_BGR2GRAY)
-    gray2 = cv2.cvtColor(_normalize_face(face2), cv2.COLOR_BGR2GRAY)
-
-    e1 = cv2.Canny(gray1, 80, 160)
-    e2 = cv2.Canny(gray2, 80, 160)
-    inter = np.logical_and(e1 > 0, e2 > 0).sum()
-    union = np.logical_or(e1 > 0, e2 > 0).sum()
-    if union == 0:
-        return None
-    return float(inter / union)
-
-
-# Combina as métricas em um score único entre 0 e 1.
-def _face_similarity_details(face1, face2):
-    # Junta várias heurísticas em um único score de similaridade.
-    hist_score = _hist_similarity(face1, face2)
-    orb_score = _orb_similarity(face1, face2)
-    edge_score = _edge_similarity(face1, face2)
-
-    # Damos menos peso ao histograma puro porque ele costuma aceitar
-    # rostos diferentes quando a iluminação e o enquadramento são parecidos.
-    parts = [0.35 * hist_score]
-    weight = 0.35
-
-    if orb_score is not None:
-        parts.append(0.45 * orb_score)
-        weight += 0.45
-    if edge_score is not None:
-        parts.append(0.20 * edge_score)
-        weight += 0.20
-
-    score = float(sum(parts) / weight)
-
-    # Regras mínimas para reduzir falso positivo em demos acadêmicas.
-    # Só aprova quando o score geral e a estrutura facial passam em conjunto.
-    structural_ok = (orb_score is not None and orb_score >= 0.26) or (
-        edge_score is not None and edge_score >= 0.36
-    )
-    histogram_ok = hist_score >= 0.72
-    verified = score >= 0.67 and histogram_ok and structural_ok
+# Compara dois descritores dlib.
+def _face_similarity_details(descriptor1, descriptor2):
+    distance = float(np.linalg.norm(descriptor1 - descriptor2))
+    score = _distance_to_score(distance)
+    verified = distance <= DLIB_DISTANCE_THRESHOLD
 
     return {
         "score": score,
-        "hist_score": hist_score,
-        "orb_score": orb_score,
-        "edge_score": edge_score,
+        "dlib_distance": distance,
+        "dlib_score": score,
         "match": verified,
     }
-
-
-def _face_similarity(face1, face2):
-    return _face_similarity_details(face1, face2)["score"]
 
 
 # Extrai a face principal a partir de um caminho no disco.
@@ -198,21 +174,26 @@ def extract_face_from_path(image_path: str):
     return _detect_single_face(image)
 
 
+# Extrai o descritor facial dlib a partir de um caminho no disco.
+def extract_descriptor_from_path(image_path: str):
+    image = _load_image(image_path)
+    return _face_descriptor_from_image(image)
+
+
 # Compara duas imagens faciais já salvas no disco.
 def compare_faces_by_path(image_path_1: str, image_path_2: str):
     try:
-        face1 = extract_face_from_path(image_path_1)
-        face2 = extract_face_from_path(image_path_2)
-        metrics = _face_similarity_details(face1, face2)
+        descriptor1 = extract_descriptor_from_path(image_path_1)
+        descriptor2 = extract_descriptor_from_path(image_path_2)
+        metrics = _face_similarity_details(descriptor1, descriptor2)
 
         return {
             "success": True,
             "match": metrics["match"],
             "message": "Faces correspondem." if metrics["match"] else "Faces não correspondem.",
             "score": metrics["score"],
-            "hist_score": metrics["hist_score"],
-            "orb_score": metrics["orb_score"],
-            "edge_score": metrics["edge_score"],
+            "dlib_score": metrics["dlib_score"],
+            "dlib_distance": metrics["dlib_distance"],
             "liveness_ok": True,
         }
     except Exception as e:
@@ -221,9 +202,8 @@ def compare_faces_by_path(image_path_1: str, image_path_2: str):
             "match": False,
             "message": str(e),
             "score": None,
-            "hist_score": None,
-            "orb_score": None,
-            "edge_score": None,
+            "dlib_score": None,
+            "dlib_distance": None,
             "liveness_ok": False,
         }
 
@@ -251,7 +231,7 @@ def verify_registration_person(live_image_path: str, selfie_image_path: str) -> 
 
     return {
         "success": True,
-        "message": "Cadastro facial validado com sucesso.",
+        "message": "Cadastro facial validado com sucesso usando dlib.",
         "score": result.get("score"),
         "liveness_ok": True,
     }
